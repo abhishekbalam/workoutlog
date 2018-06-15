@@ -1,0 +1,143 @@
+#!/usr/bin/python
+
+from __future__ import print_function
+import os
+import datetime as dt
+import sys
+import platform
+today = str(dt.date.today())
+
+workout = {0:"Rest",1:"Cardio",2:"Upper Body",3:"Lower Body"}
+
+def main():
+		
+	t="2017-06-22"
+	now = dt.datetime.strptime(t, '%Y-%m-%d').date()
+	
+	if(platform.python_version().find('3.5')==0):
+		print("Use Python 2.7")
+		exit();
+	
+	if(len(sys.argv)==1):
+		print("Arguments needed!\n-add\n-list\n-edit")
+		exit()
+	if(sys.argv[1] == "list"):
+		print_record()
+		exit()
+	elif(sys.argv[1] == "add"):
+		add_record(today)
+		exit();
+	elif(sys.argv[1] == "edit"):
+		edit_record()
+		exit();
+	else:
+		print("Wrong Input")
+		exit()
+
+	pass
+
+def print_record():
+	record = []
+	with open("record.csv") as f:
+			for line in f:
+				record.append(line.replace("\n","").split(","))
+	print("___Date___|__Workout__")
+	for i in range(len(record)):
+		for j in range(2):
+			if(j==0):
+				w=workout[int(record[i][j])]
+			else:
+				d=record[i][j]
+		print(d+" "+w+"\n",end="")
+	pass
+
+def ret_record(date):
+	record = []
+	
+	a = input("Did You Workout on "+date+" ?\n1)Yes\n2)No\n>")
+	
+	if(a==1):
+		b=input("What Did You Do?\n1)Cardio\n2)Upper Body\n3)Lower Body\n> ")
+		record.append(b)
+	elif(a == 2):
+		record.append(0)
+	else:	
+		print("Wrong Input")
+		exit()
+	record.append(date)
+	record=",".join(map(str, record))
+	return record
+
+def check_if_exists(date):
+	f1 = open("record.csv").read().find(date)
+	f2 = os.stat("record.csv").st_size
+	return (f1 >= 0 and f2>0)
+
+def add_record(date):
+
+	if(check_if_exists(date)):
+		with open("record.csv") as f:
+			for line in f:
+				if date in line:
+					a = line
+					break;
+		line = a
+		if(date==today):
+			print("You have already made today's entry:")
+		else:
+			print("This day's entry shows:")
+			
+		print(line)
+		
+		if(date==today):
+			a = input("\nDo you want to edit it?\n1)Yes\n2)No\n> ")
+		else:
+			a=1
+		
+		if(a == 1):
+			f=open("record.csv")
+			if(line.endswith("\n")):
+				line = f.read().replace(line,(ret_record(date)+"\n"))
+			else:
+				line = f.read().replace(line,(ret_record(date)))
+
+			file = open("record.csv","wt")
+			file.write(line)
+			print("Entry Edited")
+			print("Exiting..")
+			exit();
+		else:
+			print("Exiting..")
+			exit()
+	else:
+		file = open("record.csv","a")
+		file.write( "\n" + ret_record(date))
+		print("Entry Made. Have a nice day.")
+		print("Exiting..")
+		exit()
+
+def edit_record():
+	d=str(input("To Edit a record, please enter the:\nDay>"))
+	
+	if(int(d)<10):
+		d="0"+d
+	m=str(input("\nMonth>"))
+	if(int(m)<10):
+		m="0"+m
+	y=str(input("\nYear>"))
+	date=""+y+"-"+m+"-"+d
+	print(date)
+	
+	d=dt.datetime.strptime(date, '%Y-%m-%d').date()
+	t = dt.datetime.strptime(today, '%Y-%m-%d').date()
+	if(d>t):
+		print("You cant edit the records from the future!\nExiting..")
+		exit()
+	if(check_if_exists(date)):
+		add_record(date)
+	else:
+		add_record(date)
+	pass
+
+if __name__ == '__main__':
+    sys.exit(main())
